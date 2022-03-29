@@ -1,0 +1,80 @@
+# Basic 27/3
+
+python train.py \
+--input_training_file Data/train.txt \
+--input_validation_file Data/val.txt \
+--checkpoint_path Outdir/ex1 \
+--training_epochs 500
+
+# Add specaugment
+python train.py \
+--input_training_file Data/train.txt \
+--input_validation_file Data/val.txt \
+--checkpoint_path Outdir/ex2 \
+--training_epochs 500
+
+# No spec, with data augment
+python train.py \
+--input_training_file /home/nhandt23/Desktop/SCCup2022-Synthetic-Speech-Attribution/Static/data_augment/train_nocompress.txt \
+--input_validation_file /home/nhandt23/Desktop/SCCup2022-Synthetic-Speech-Attribution/Static/data_augment/val_nocompress.txt \
+--checkpoint_path Outdir/ex3 \
+--training_epochs 500
+
+# Try cascade
+# Config for 2 classes unseen
+python train_cascade.py \
+--input_training_file /home/nhandt23/Desktop/SCCup2022-Synthetic-Speech-Attribution/Static/data_augment/train_nocompress.txt \
+--input_validation_file /home/nhandt23/Desktop/SCCup2022-Synthetic-Speech-Attribution/Static/data_augment/val_nocompress.txt \
+--checkpoint_path Outdir/ex4 \
+--training_epochs 500
+
+# Config have 5 class
+python train_cascade.py \
+--input_training_file /home/nhandt23/Desktop/SCCup2022-Synthetic-Speech-Attribution/Static/data_augment/train_nocompress.txt \
+--input_validation_file /home/nhandt23/Desktop/SCCup2022-Synthetic-Speech-Attribution/Static/data_augment/val_nocompress.txt \
+--checkpoint_path Outdir/ex5 \
+--training_epochs 500
+
+# Increase augment tof 10%
+
+# if cascade > 93  =>  Add focal loss for unseen in cascade
+python train_cascade.py \
+--input_training_file /home/nhandt23/Desktop/SCCup2022-Synthetic-Speech-Attribution/Static/data_augment/train_nocompress.txt \
+--input_validation_file /home/nhandt23/Desktop/SCCup2022-Synthetic-Speech-Attribution/Static/data_augment/val_nocompress.txt \
+--checkpoint_path Outdir/ex6 \
+--config Outdir/ex6/config.json \
+--training_epochs 500
+
+
+# Add smoothing for 5 classes => fail
+python train_cascade.py \
+--input_training_file /home/nhandt23/Desktop/SCCup2022-Synthetic-Speech-Attribution/Static/data_augment/train_nocompress.txt \
+--input_validation_file /home/nhandt23/Desktop/SCCup2022-Synthetic-Speech-Attribution/Static/data_augment/val_nocompress.txt \
+--checkpoint_path Outdir/ex7 \
+--config Outdir/ex7/config.json \
+--training_epochs 500
+
+####################
+# hard augment, 30k files, 25k for training, increase batch, effi b1 for 5 classes
+
+python train_cascade.py \
+--input_training_file Data/train_augment.txt \
+--input_validation_file Data/val_augment.txt \
+--checkpoint_path Outdir/ex8 \
+--config Outdir/ex8/config.json \
+--training_epochs 500
+
+python train_cascade.py \
+--input_training_file Data/train_augment.txt \
+--input_validation_file Data/val_augment.txt \
+--checkpoint_path Outdir/ex9 \
+--config Outdir/ex9/config.json \
+--training_epochs 500
+
+# Try efficient V2
+python train_cascade.py \
+--input_training_file Data/train_augment.txt \
+--input_validation_file Data/val_augment.txt \
+--checkpoint_path Outdir/ex10 \
+--config Outdir/ex10/config.json \
+--training_epochs 700

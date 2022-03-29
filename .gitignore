@@ -1,6 +1,4 @@
-*
-*/
 !.gitignore
-Predit/*
+Predict/*
 Outdir/*
 Data/*
