@@ -16,7 +16,7 @@ from model import Tulet
 import warnings, glob
 warnings.filterwarnings("ignore")
 torch.backends.cudnn.benchmark = True
-from loss import Tuloss
+from loss import ArcMarginProduct
 
 # This require batch is divided by 4
 
@@ -82,7 +82,7 @@ def train(rank, a, h):
 
                     # Tensorboard summary logging
                     if steps % 100 == 0:
-                         sw.add_scalar("training/gen_loss_total", train_err_tot/100, steps)
+                         sw.add_scalar("training/gen_loss_total", 10+train_err_tot/100, steps)
                          sw.add_scalar("lr",scheduler_g.get_last_lr()[-1],steps)
                          train_err_tot = 0
 
@@ -107,7 +107,7 @@ def train(rank, a, h):
                                    loss = criterion(ac_h, p_h) - criterion(ac_h, n_h) - criterion(ac_h, u_h) - criterion(n_h, u_h)
                                    val_err_tot += loss
 
-                         sw.add_scalar("validation/loss", val_err_tot/(j+1), steps)
+                         sw.add_scalar("validation/loss", 10+val_err_tot/(j+1), steps)
                          model.train()
                steps += 1
           scheduler_g.step()

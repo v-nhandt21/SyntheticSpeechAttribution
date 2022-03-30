@@ -129,4 +129,4 @@ class TuDataset(torch.utils.data.Dataset):
           return mel
 
      def __len__(self):
-          return len(self.audio_files)
+          return len(self.audio_files[0]) + len(self.audio_files[1]) + len(self.audio_files[2]) + len(self.audio_files[3]) + len(self.audio_files[4]) + len(self.audio_files[5])

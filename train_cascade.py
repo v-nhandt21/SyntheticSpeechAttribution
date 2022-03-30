@@ -6,7 +6,7 @@ import argparse
 import json
 import torch
 from torch.utils.tensorboard import SummaryWriter
-from torch.utils.data import DistributedSampler, DataLoader
+from torch.utils.data import DataLoader
 from meldataset import MelDataset, get_dataset_filelist
 from utils import save_checkpoint
 import os
@@ -27,14 +27,16 @@ def train(rank, a, h):
      model = Cascade(unseen, h=h).to("cuda")
 
      cp_list = glob.glob(a.checkpoint_path+"/"+"g_*")
+
+     optim_g = torch.optim.AdamW(model.parameters(), h.learning_rate)
+
      if len(cp_list) != 0:
           print("Load model: ",sorted(cp_list)[-1])
           state_dict = torch.load(sorted(cp_list)[-1], map_location="cuda")
           model.load_state_dict(state_dict['generator'])
           steps = state_dict['steps'] + 1
           last_epoch = state_dict['epoch']
-
-     optim_g = torch.optim.AdamW(model.parameters(), h.learning_rate)
+          optim_g.load_state_dict(state_dict['optim_g'])
 
      scheduler_g = torch.optim.lr_scheduler.ExponentialLR(optim_g, gamma=h.lr_decay, last_epoch=last_epoch)
 
@@ -90,7 +92,7 @@ def train(rank, a, h):
                if rank == 0:
                     if steps % 1000 == 0 and steps != 0:
                          checkpoint_path = "{}/g_{:08d}".format(a.checkpoint_path, steps)
-                         save_checkpoint(checkpoint_path, {'generator': (model).state_dict(), 'steps': steps, 'epoch': epoch})
+                         save_checkpoint(checkpoint_path, {'generator': (model).state_dict(), 'optim_g': optim_g.state_dict(), 'steps': steps, 'epoch': epoch})
 
                     # Tensorboard summary logging
                     if steps % 100 == 0:

@@ -78,3 +78,20 @@ python train_cascade.py \
 --checkpoint_path Outdir/ex10 \
 --config Outdir/ex10/config.json \
 --training_epochs 700
+
+###################
+Tulet
+python train_tulet.py \
+--input_training_file Data/train_augment.txt \
+--input_validation_file Data/val_augment.txt \
+--checkpoint_path Outdir/ex11 \
+--config Outdir/ex11/config.json \
+--training_epochs 700
+
+##### eff b7, seg 32000 predic set threshold for úneen
+python train_cascade.py \
+--input_training_file Data/train_augment3.txt \
+--input_validation_file Data/val_augment3.txt \
+--checkpoint_path Outdir/ex12 \
+--config Outdir/ex12/config.json \
+--training_epochs 700
