@@ -25,7 +25,7 @@ class Cascade(torch.nn.Module):
                if h.backbone == "efficientNetv2":
                     self.model =  effnetv2_m(num_classes=5)
                else:
-                    self.model = EfficientNet.from_pretrained('efficientnet-b7', num_classes=5)
+                    self.model = EfficientNet.from_pretrained('efficientnet-b1', num_classes=5)
      def forward(self, x): 
           x = x.unsqueeze(1).repeat(1,3,1,1) 
           x = self.model(x)
