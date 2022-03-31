@@ -1,10 +1,7 @@
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
-import os
-import time
-import argparse
-import json
-import torch
+import argparse, json
+import torch, glob
 from meldataset import MelDataset, mel_spectrogram, MAX_WAV_VALUE, load_wav
 from tudataset import TuDataset
 from utils import save_checkpoint
@@ -20,7 +17,7 @@ from loss import ArcMarginProduct
 def get_mel(x, h):
      return mel_spectrogram(x, h)
 
-def predict_tulet(part, model_path, h, threshold, ground_truth_file="Data/all_augment.txt"):
+def predict_tulet(file_out, evaluation_folder, model_path, h, threshold, ground_truth_file="Data/all_augment.txt"):
      model = Tulet().to("cuda")
      state_dict_g = torch.load(model_path, map_location="cuda")
      model.load_state_dict(state_dict_g['generator'])
@@ -52,11 +49,12 @@ def predict_tulet(part, model_path, h, threshold, ground_truth_file="Data/all_au
      distance = torch.nn.CrossEntropy()
 
      with torch.no_grad():
-          fw = open("answer.txt", "w", encoding="utf-8")
-          with open("Predict/labels_part"+str(part)+".txt", "r", encoding="utf-8") as f:
-               lines = f.read().splitlines()
+          fw = open(file_out, "w", encoding="utf-8")
+          fw.write("track,algorithm\n")
+          with open(glob.glob(evaluation_folder+"/"+"*.csv")[0], "r", encoding="utf-8") as f:
+               lines = f.read().splitlines()[1:]
                for line in tqdm(lines):
-                    file = "Predict/part"+str(part) +"/" + line
+                    file = evaluation_folder +"/" + line.split(",")[1]
                     emb = get_emb(file)
 
                     dis = []
@@ -66,10 +64,10 @@ def predict_tulet(part, model_path, h, threshold, ground_truth_file="Data/all_au
                     if min(dis) >= threshold:
                          fw.write( line+", 5\n" )
                     else:
-                         fw.write( line+", "+str( dis.index(min(dis)) )+"\n" )
+                         fw.write( line.split(",")[1]+","+str( dis.index(min(dis)) )+"\n" )
                     
 
-def predict_cascade(part, model_path_unseen, model_path_algo, h):
+def predict_cascade(file_out, evaluation_folder, model_path_unseen, model_path_algo, h):
      model_unseen = Cascade(unseen=True, h = h).to("cuda")
      model_algo = Cascade(unseen=False, h = h).to("cuda")
 
@@ -79,11 +77,13 @@ def predict_cascade(part, model_path_unseen, model_path_algo, h):
      model_algo.load_state_dict(torch.load(model_path_algo, map_location="cuda")['generator'])
      model_algo.eval()
      with torch.no_grad():
-          fw = open("answer.txt", "w", encoding="utf-8")
-          with open("Predict/labels_part"+str(part)+".txt", "r", encoding="utf-8") as f:
-               lines = f.read().splitlines()
+          fw = open(file_out, "w", encoding="utf-8")
+          fw.write("track,algorithm\n")
+          with open(glob.glob(evaluation_folder+"/"+"*.csv")[0], "r", encoding="utf-8") as f:
+               lines = f.read().splitlines()[1:]
                for line in tqdm(lines):
-                    file = "Predict/part"+str(part) +"/" + line
+
+                    file = evaluation_folder +"/" + line.split(",")[1]
                     
                     wav, sr = load_wav(file)
                     wav = wav / MAX_WAV_VALUE
@@ -99,14 +99,14 @@ def predict_cascade(part, model_path_unseen, model_path_algo, h):
                     #      continue
 
                     if int(torch.argmax(predict).detach().cpu().numpy()):
-                         fw.write( line+", 5\n" )
+                         fw.write( line.split(",")[1]+",5\n" )
                          continue
 
                     predict = model_algo(x)
                     predict = predict.squeeze()
-                    fw.write( line+", "+str(int(torch.argmax(predict).detach().cpu().numpy()))+"\n" )
+                    fw.write( line.split(",")[1]+","+str(int(torch.argmax(predict).detach().cpu().numpy()))+"\n" )
 
-def predict_6class(part, model_path, h):
+def predict_6class(file_out, evaluation_folder, model_path, h):
      model = Classifier().to("cuda")
      state_dict_g = torch.load(model_path, map_location="cuda")
      model.load_state_dict(state_dict_g['generator'])
@@ -114,11 +114,12 @@ def predict_6class(part, model_path, h):
 
      data = MelDataset([], h)
      with torch.no_grad():
-          fw = open("answer.txt", "w", encoding="utf-8")
-          with open("Predict/labels_part"+str(part)+".txt", "r", encoding="utf-8") as f:
-               lines = f.read().splitlines()
+          fw = open(file_out, "w", encoding="utf-8")
+          fw.write("track,algorithm\n")
+          with open(glob.glob(evaluation_folder+"/"+"*.csv")[0], "r", encoding="utf-8") as f:
+               lines = f.read().splitlines()[1:]
                for line in tqdm(lines):
-                    file = "Predict/part"+str(part) +"/" + line
+                    file = evaluation_folder +"/" + line.split(",")[1]
                     
                     wav, sr = load_wav(file)
                     wav = wav / MAX_WAV_VALUE
@@ -126,7 +127,7 @@ def predict_6class(part, model_path, h):
                     x = get_mel(wav.unsqueeze(0), h)
                     predict = model(x)
                     predict = predict.squeeze()
-                    fw.write( line+", "+str(int(torch.argmax(predict).detach().cpu().numpy()))+"\n" )
+                    fw.write( line.split(",")[1]+","+str(int(torch.argmax(predict).detach().cpu().numpy()))+"\n" )
 
 def predict():
 
@@ -134,7 +135,8 @@ def predict():
      parser.add_argument('--checkpoint_path_unseen', default='')
      parser.add_argument('--checkpoint_path', default='')
      parser.add_argument('--config', default='config.json')
-     parser.add_argument('--part')
+     parser.add_argument('--evaluation_folder')
+     parser.add_argument('--file_out')
      parser.add_argument('--threshold')
      a = parser.parse_args()
 
@@ -150,9 +152,9 @@ def predict():
           return
 
      if not a.checkpoint_path_unseen:
-          predict_6class(a.part, model_path= a.checkpoint_path, h = h)
+          predict_6class(a.file_out, a.evaluation_folder, model_path= a.checkpoint_path, h = h)
      else:
-          predict_cascade(a.part, a.checkpoint_path_unseen, a.checkpoint_path, h)
+          predict_cascade(a.file_out, a.evaluation_folder, a.checkpoint_path_unseen, a.checkpoint_path, h)
 
 
 if __name__ == '__main__':

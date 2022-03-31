@@ -1,9 +1,7 @@
 # Quickly Reproduce Result
 
-## Part 1
-python predict.py --part 1 --checkpoint_path_unseen g_00026000  --checkpoint_path g_00100000 --config config.json
-## Part 2
-python predict.py --part 2 --checkpoint_path_unseen g_00026000  --checkpoint_path g_00100000 --config config.json
+``` bash predict.sh ```
+
 # Synthetic Speech Attribution
 
 2022 IEEE Signal Processing Cup
@@ -53,7 +51,13 @@ Training model using efficientNet b0
 
 ## Prediction
 
-``` python infer.py [Option: model_path]```
+``` 
+python predict.py --file_out <part_scores.csv> \
+--evaluation_folder <path_to_spcup_2022_eval_part1>\
+--checkpoint_path_unseen <checkpoint unseen>  \
+--checkpoint_path <checkpoint algorithm> \
+--config config.json 
+```
 
 ## Export Onnx
 Export to onnx with static input (prefer)

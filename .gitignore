@@ -1,5 +1,8 @@
 !.gitignore
 Predict/*
 Outdir/*
-Data/*
+Data/part1/*
+Data/part2/*
+Data/part3/*
+Data/part4/*
 Mel/*
