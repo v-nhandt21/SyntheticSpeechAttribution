@@ -8,6 +8,7 @@ from librosa.util import normalize
 from scipy.io.wavfile import read
 from librosa.filters import mel as librosa_mel_fn
 import torchaudio
+from utils import AttrDict, build_env
 MAX_WAV_VALUE = 32768.0
 import matplotlib
 matplotlib.use('TKAgg')
@@ -105,6 +106,11 @@ class MelDataset(torch.utils.data.Dataset):
 
           return (mel.squeeze(), int(y))
 
+     def extract_mel(self, save_path):
+          for file, _ in self.audio_files:
+               mel = self.get_feature(file)
+               np.save(save_path + "/"+file.split("/")[-1] ,mel.detach().numpy())
+
      def get_feature(self, filename):
           
           audio, sampling_rate = load_wav(filename)
@@ -127,3 +133,25 @@ class MelDataset(torch.utils.data.Dataset):
 
      def __len__(self):
           return len(self.audio_files)
+
+if __name__ == '__main__':
+     import argparse, json, shutil
+     device = "cuda"
+
+     parser = argparse.ArgumentParser()
+     parser.add_argument('--config', default='config.json')
+     parser.add_argument('--input_testing_file', default='/home/nhandt23/Desktop/SPCUP/Data/val.txt')
+
+     a = parser.parse_args()
+
+     with open(a.config) as f:
+          data = f.read()
+
+     json_config = json.loads(data)
+     h = AttrDict(json_config)
+
+     with open(a.input_testing_file, 'r', encoding='utf-8') as fi:
+          testing_files = [x.split(',') for x in fi.read().split('\n') if len(x) > 0]
+
+     dataset = MelDataset(testing_files, h)
+     dataset.extract_mel("Mel")

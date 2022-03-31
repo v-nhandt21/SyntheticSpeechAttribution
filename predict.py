@@ -166,3 +166,4 @@ if __name__ == '__main__':
      # python predict.py --part 2 --checkpoint_path_unseen Outdir/ex8/g_00026000  --checkpoint_path Outdir/ex9/g_00080000 --config Outdir/ex8/config.json # hard augment, 30k files, 25k for training, increase batch, effi b1 for 5 classes # part2=94.3
      # python predict.py --part 2 --checkpoint_path_unseen Outdir/ex8/g_00026000  --checkpoint_path Outdir/ex10/g_00095000 --config Outdir/ex10/config.json
      # python predict.py --part 2  --checkpoint_path Outdir/ex11/g_00018000 --config Outdir/ex11/config.json --threshold 0.8# Tulet
+     # python predict.py --part 2 --checkpoint_path_unseen Outdir/ex8/g_00026000  --checkpoint_path Outdir/ex11/g_00100000 --config Outdir/ex11/config.json
